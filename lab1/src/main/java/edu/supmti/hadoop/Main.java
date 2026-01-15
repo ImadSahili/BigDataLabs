@@ -3,15 +3,13 @@ package edu.supmti.hadoop;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 
-// import org.apache.hadoop.fs.Path;
 public class Main {
     public static void main(String[] args) throws IOException {
         Configuration conf = new Configuration();
         // conf.set("fs.defaultFS", "hdfs://localhost:9000");
+        // System.setProperty("HADOOP_USER_NAME", "root");
         FileSystem fs = FileSystem.get(conf);
         if (args.length < 1) {
             System.out.println("Usage: HadoopFileStatus <file-path>");
@@ -27,5 +25,19 @@ public class Main {
         System.out.println("Is Directory: " + status.isDirectory());
         System.out.println("Modification Time: " + status.getModificationTime());
 
+        BlockLocation[] blockLocations = fs.getFileBlockLocations(status, 0, status.getLen());
+        for (BlockLocation blockLocation : blockLocations) {
+            System.out.println("Block Offset: " + blockLocation.getOffset());
+            System.out.println("Block Length: " + blockLocation.getLength());
+            String[] hosts = blockLocation.getHosts();
+            for (String host : hosts) {
+                System.out.println("Stored on: " + host);
+            }
+        }
+
+        if (args.length >= 2) {
+            Boolean succes = fs.rename(new Path(args[0]), new Path(args[1]));
+            System.out.println("Renaming succesful: " + succes);
+        }
     }
 }
